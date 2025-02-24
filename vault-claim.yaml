@@ -1,0 +1,7 @@
+apiVersion: vault.crossplane.io/v1beta1
+kind: VaultResourcesClaim
+metadata:
+  name: vault-kv2-example
+spec:
+  compositionRef:
+    name: vault-kv2-example

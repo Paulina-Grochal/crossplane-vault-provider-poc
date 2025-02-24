@@ -1,0 +1,25 @@
+apiVersion: vault.upbound.io/v1beta1
+kind: ProviderConfig
+metadata:
+  name: vault-provider-config
+spec:
+  address: http://vault.vault.svc.cluster.local:8200
+  credentials:
+    secretRef:
+      key: credentials
+      name: vault-creds
+      namespace: crossplane-system
+    source: Secret
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vault-creds
+  namespace: crossplane-system
+type: Opaque
+stringData:
+  credentials: |
+    {
+      "token_name": "vault-creds-test-token",
+      "token": {<ENTER YOUR TOKEN HERE>}
+    }

@@ -1,0 +1,79 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: vault-kv2-secrets
+spec:
+  compositeTypeRef:
+    apiVersion: vault.crossplane.io/v1beta1
+    kind: VaultResources
+  resources:
+    - name: kv-secret-engine
+      base:
+        apiVersion: kv.vault.upbound.io/v1alpha1
+        kind: SecretBackendV2
+        metadata:
+          name: kv2-secret-engine
+        spec:
+          forProvider:
+            casRequired: true
+            deleteVersionAfter: 12600
+            maxVersions: 5
+            mountSelector:
+              matchLabels:
+                testing.upbound.io/example-name: kvv2
+          initProvider:
+            mountRef:
+              name: kv-mount
+          providerConfigRef:
+            name: vault-provider-config
+    - name: kv-mount
+      base:
+        apiVersion: vault.vault.upbound.io/v1alpha1
+        kind: Mount
+        metadata:
+          annotations:
+            meta.upbound.io/example-id: kv/v1alpha1/secretbackendv2
+          name: kvv2
+          labels: 
+            type: kv2-mount-path
+        spec:
+          forProvider:
+            description: KV Version 2 secret engine mount
+            options:
+              version: "2"
+            path: kvv2
+            type: kv
+          providerConfigRef:
+            name: vault-provider-config
+    - name: vault-crud-policy
+      base:
+        apiVersion: vault.vault.upbound.io/v1alpha1
+        kind: Policy
+        metadata:
+          name: kv-crud-policy
+        spec:
+          forProvider:
+            name: "crud-policy-composition"
+            policy: |
+              path "kv/*" {
+                capabilities = ["read", "create", "update"]
+              }
+          providerConfigRef:
+            name: vault-provider-config
+    - name: vault-health-policy
+      base:
+        apiVersion: vault.vault.upbound.io/v1alpha1
+        kind: Policy
+        metadata:
+          name: health-policy
+        spec:
+          forProvider:
+            name: "health-policy-composition"
+            policy: |
+              path "sys/health"
+              {
+                capabilities = ["read", "sudo"]
+              }
+          providerConfigRef:
+            name: vault-provider-config
+            
